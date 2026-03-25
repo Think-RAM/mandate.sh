@@ -21,6 +21,7 @@ coverage
 # Vercel
 .vercel
 CLAUDE.md
+.claude/
 
 # Build Outputs
 .next/
