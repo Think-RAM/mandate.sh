@@ -2,6 +2,12 @@
 
 Mandate is a Turbo monorepo for generating AI governance policies from a guided company onboarding flow. Users complete a multi-step questionnaire, the app stores that company profile in Postgres via Prisma, then a LangGraph workflow asks follow-up questions, performs web research with Exa when needed, and produces final policy markdown.
 
+## Demo
+
+![Mandate Demo](screenshots/mandate-demo.gif)
+
+*Complete walkthrough: Homepage → Company Onboarding → AI-Powered Q&A → Policy Generation*
+
 ## How It Works
 
 The active product flow lives in `apps/web`:
