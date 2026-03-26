@@ -67,12 +67,12 @@ async function DashboardContent({
   let companyProfile:
     | { name: string; industry: string; size: string; countries: string }
     | undefined;
-    let finalPolicies: string | undefined = undefined; // <-- NEW
+  let finalPolicies: string | undefined = undefined; // <-- NEW
   try {
     const graphState = await mandateGetThreadCurrentState(threadId);
     companyProfile = extractCompanyProfile(graphState?.values?.onboarding_data);
-        // ─── NEW: EXACT POLICY EXTRACTION ───
-            const values = graphState?.values || {};
+    // ─── NEW: EXACT POLICY EXTRACTION ───
+    const values = graphState?.values || {};
 
     if (values.policies) {
       finalPolicies = values.policies;
