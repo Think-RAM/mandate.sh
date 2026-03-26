@@ -1,27 +1,5 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@repo/ui/button";
-import { Input } from "@repo/ui/input";
-import { Skeleton } from "@repo/ui/skeleton";
-import {
-  Bot,
-  User,
-  Info,
-  Send,
-  CheckCircle2,
-  Loader2,
-  Search,
-  Cpu,
-  Zap,
-  ChevronDown,
-  ChevronUp,
-  FileText,
-  Download,
-  Copy,
-} from "lucide-react";
-import { cn } from "@repo/ui/lib/utils";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {
   CompanyProfile,
   LiveEvent,
@@ -87,26 +65,6 @@ export function ChatInterface({
   const [questionCount, setQuestionCount] = useState(initialQuestion ? 1 : 0);
   const [backendDrafts, setBackendDrafts] =
     useState<Record<string, string>>(initialDrafts);
-
-  // ─── Options selection state: { [messageId]: { "Q26": "chosen option", ... } }
-  const [selectedOptions, setSelectedOptions] = useState<
-    Record<string, Record<string, string>>
-  >({});
-  // Track which message ids have been submitted via options panel
-  const [submittedOptionMessages, setSubmittedOptionMessages] = useState<
-    Set<string>
-  >(() => {
-    const set = new Set<string>();
-    if (initialMessages.length > 0) {
-      initialMessages.forEach((m, idx) => {
-        // Mark all assistant messages as submitted EXCEPT the very last one (if we are interrupted)
-        if (m.role === "assistant" && idx < initialMessages.length - 1) {
-          set.add(m.id);
-        }
-      });
-    }
-    return set;
-  });
 
   // 5. Update the initialQuestion effect to avoid duplicate messages on refresh
   useEffect(() => {

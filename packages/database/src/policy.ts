@@ -75,41 +75,71 @@ export async function updatePolicy(
     return policy;
 }
 
-/**
- * Updates the content of an existing policy by creating a new version with the updated content and sections. The previous version is retained for history.
- * @param threadId 
- * @param content 
- * @param sections 
- * @param changeNote 
- * @returns The updated policy
- */
+type PolicySection = {
+    title: string;
+    content: string;
+};
+
 export async function updatePolicyContent(
     threadId: string,
-    content: string,
-    sections: any,
+    updatedSectionContent: string,
+    sectionId: string,
     changeNote: string
 ) {
+    // 1. Get latest policy
     const latestPolicy = await db.policy.findFirst({
-        where: {
-            threadId,
-        },
-        orderBy: {
-            createdAt: 'desc',
-        },
+        where: { threadId },
+        orderBy: { createdAt: "desc" },
     });
 
     if (!latestPolicy) {
         throw new Error("No existing policy found for this thread");
     }
 
+    // 2. Parse sections safely
+    const sections = (latestPolicy.sections || []) as PolicySection[];
+
+    if (!Array.isArray(sections)) {
+        throw new Error("Invalid sections format in policy");
+    }
+
+    // 3. Update the specific section
+    let sectionFound = false;
+
+    const updatedSections = sections.map((section) => {
+        if (section.title === sectionId) {
+            sectionFound = true;
+            return {
+                ...section,
+                content: updatedSectionContent,
+            };
+        }
+        return section;
+    });
+
+    // Optional: if section doesn't exist, add it
+    if (!sectionFound) {
+        updatedSections.push({
+            title: sectionId,
+            content: updatedSectionContent,
+        });
+    }
+
+    // 4. Rebuild full markdown content
+    const rebuiltContent = updatedSections
+        .map((section) => `### ${section.title}\n\n${section.content}`)
+        .join("\n\n");
+
+    // 5. Create new version
     const updatedPolicy = await db.policy.create({
         data: {
             companyId: latestPolicy.companyId,
-            threadId,
-            content,
-            sections,
+            threadId: latestPolicy.threadId,
+            content: rebuiltContent,
+            sections: updatedSections,
             version: latestPolicy.version + 1,
             changeNote,
+            status: latestPolicy.status,
         },
     });
 

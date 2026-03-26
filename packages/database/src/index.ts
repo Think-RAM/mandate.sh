@@ -24,4 +24,5 @@ export {
 } from "./policy";
 export {
     saveAdditionalData,
+    getCompanyInfo,
 } from "./company";

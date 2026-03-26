@@ -1,3 +1,7 @@
+import { findSectionContextTool, rewriteForSectionTool } from "@/lib/tools/policy-tools";
+import { InferUITool, UIDataTypes, UIMessage } from "ai";
+import z from "zod";
+
 export type WorkflowStatus = "interrupt" | "completed" | "running" | "error";
 
 export type Message = {
@@ -35,3 +39,20 @@ export type SectionState =
   | "drafted"
   | "ai_drafted"
   | "final";
+
+export const messageMetadataSchema = z.object({
+  createdAt: z.string(),
+});
+
+type ChatTools = {
+  findSectionContext: InferUITool<typeof findSectionContextTool>;
+  rewriteForSection: InferUITool<ReturnType<typeof rewriteForSectionTool>>;
+};
+
+export type ChatMessageAI = UIMessage<
+  MessageMetadata,
+  UIDataTypes,
+  ChatTools
+>;
+
+export type MessageMetadata = z.infer<typeof messageMetadataSchema>;

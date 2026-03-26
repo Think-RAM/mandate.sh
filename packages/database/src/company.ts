@@ -19,3 +19,15 @@ export async function saveAdditionalData(companyId: string, threadId: string, ad
 
     return updatedCompany;
 }
+
+export async function getCompanyInfo(companyId: string) {
+    const company = await db.company.findUnique({
+        where: { id: companyId },
+    });
+
+    if (!company) {
+        throw new Error("Company not found");
+    }
+    
+    return company;
+}
