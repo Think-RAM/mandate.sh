@@ -90,6 +90,7 @@ async function DashboardContent({
           initialQuestion={urlQuestion}
           companyProfile={companyProfile}
           initialPolicies={finalPolicies}
+          
         />
       );
     }
