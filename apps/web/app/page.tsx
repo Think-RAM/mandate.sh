@@ -1,6 +1,6 @@
 "use client";
 
-import { AgentRunner } from "./components/AgentRunner";
+import { AgentRunner } from "@/components/AgentRunner";
 
 export default function Page() {
   return (

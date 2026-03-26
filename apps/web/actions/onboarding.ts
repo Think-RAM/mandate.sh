@@ -1,6 +1,6 @@
 "use server";
 import { db } from "@repo/database";
-import { onboardingSchema, OnboardingData } from "../../lib/schemas";
+import { onboardingSchema, OnboardingData } from "@/lib/schemas";
 import { redirect } from "next/navigation";
 import { startMandateWorkflow } from "./workflow";
 

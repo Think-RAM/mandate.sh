@@ -11,7 +11,7 @@ import {
   runPrivacySecurityAgent,
   runRiskAggregationAgent,
   runTransparencyAgent,
-} from "../actions/actions"
+} from "@/actions/actions"
 
 type AgentType =
   | "sustainability"

@@ -6,8 +6,8 @@ import { Input } from "@repo/ui/input";
 import { Select } from "@repo/ui/select";
 import { SelectionCard } from "@repo/ui/selection-card";
 import { ProgressBar } from "@repo/ui/progress";
-import { submitCompanyProfile } from "../actions/onboarding";
-import { OnboardingData } from "../../lib/schemas";
+import { submitCompanyProfile } from "@/actions/onboarding";
+import { OnboardingData } from "@/lib/schemas";
 import {
   Industry,
   EmployeeCount,
