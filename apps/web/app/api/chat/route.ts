@@ -19,6 +19,7 @@ import { jsonToMarkdownTable } from "@/utils/contextualize-json";
 interface ChatRequestBody {
   threadId: string;
   messages: ChatMessageAI[];
+  version?: number;
 }
 
 const SYSTEM_PROMPT = `
@@ -86,12 +87,12 @@ Focus on executing updates efficiently and accurately.
 `;
 
 export async function POST(req: Request) {
-  const { threadId, messages }: ChatRequestBody = await req.json();
+  const { threadId, messages, version }: ChatRequestBody = await req.json();
   console.log(`Processing Thread Id ${threadId}`);
 
   try {
     const draftPolicy = await getPoliciesByCompany(threadId);
-    const currentPolicyContent = draftPolicy.current!.content;
+    const currentPolicyContent = version ? draftPolicy.versions.find((v) => v.version === version)!.content : draftPolicy.current!.content;
     const companyInfo = await getCompanyInfo(draftPolicy.current!.companyId); // Implement this function to fetch company info based on threadId
     const stream = createUIMessageStream({
       originalMessages: messages,

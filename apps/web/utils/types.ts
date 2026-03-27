@@ -44,7 +44,7 @@ export const messageMetadataSchema = z.object({
   createdAt: z.string(),
 });
 
-type ChatTools = {
+export type ChatTools = {
   findSectionContext: InferUITool<typeof findSectionContextTool>;
   rewriteForSection: InferUITool<ReturnType<typeof rewriteForSectionTool>>;
 };

@@ -10,6 +10,10 @@ import { STAGE_ORDER } from "@/utils/constants";
 import ChatLayout from "./layout/ChatLayout";
 import LeftPanel from "./layout/LeftPanel";
 import RightPanel from "./layout/RightPanel";
+import {
+  PolicyAgentProvider,
+  PolicyUpdateProps,
+} from "@/context/chat/PolicyAgentContext";
 
 type ChatInterfaceProps = {
   threadId: string;
@@ -318,39 +322,44 @@ export function ChatInterface({
     window.print();
   };
 
+  const setPolicyUpdate = (update: PolicyUpdateProps) => {};
+
   return (
-    <ChatLayout
-      left={
-        <LeftPanel
-          policies={policies}
-          companyProfile={companyProfile}
-          isStreaming={isStreaming}
-          activeStage={activeStage}
-          stagesComplete={stagesComplete}
-          questionCount={questionCount}
-          backendDrafts={backendDrafts}
-          liveEvents={liveEvents}
-          currentNode={currentNode}
-          streamingText={streamingText}
-          copiedPolicies={copiedPolicies}
-          isDownloading={isDownloading}
-          onCopy={handleCopyPolicies}
-          onDownload={handleDownloadPdf}
-        />
-      }
-      right={
-        <RightPanel
-          companyProfile={companyProfile}
-          status={status}
-          messages={messages}
-          input={input}
-          setInput={setInput}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          isStreaming={isStreaming}
-          error={error}
-        />
-      }
-    />
+    <PolicyAgentProvider threadId={threadId} setPolicyUpdate={setPolicyUpdate}>
+      <ChatLayout
+        left={
+          <LeftPanel
+            policies={policies}
+            companyProfile={companyProfile}
+            isStreaming={isStreaming}
+            activeStage={activeStage}
+            stagesComplete={stagesComplete}
+            questionCount={questionCount}
+            backendDrafts={backendDrafts}
+            liveEvents={liveEvents}
+            currentNode={currentNode}
+            streamingText={streamingText}
+            copiedPolicies={copiedPolicies}
+            isDownloading={isDownloading}
+            onCopy={handleCopyPolicies}
+            onDownload={handleDownloadPdf}
+          />
+        }
+        right={
+          <RightPanel
+            companyProfile={companyProfile}
+            policies={policies}
+            status={status}
+            messages={messages}
+            input={input}
+            setInput={setInput}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            isStreaming={isStreaming}
+            error={error}
+          />
+        }
+      />
+    </PolicyAgentProvider>
   );
 }

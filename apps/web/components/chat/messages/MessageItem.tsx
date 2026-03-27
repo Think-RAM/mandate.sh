@@ -1,22 +1,80 @@
 "use client";
 
-import { Message } from "@/utils/types";
+import { ChatMessageAI, Message } from "@/utils/types";
 import { cn } from "@repo/ui/lib/utils";
 import { Bot, User, Info } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { MarkdownResponse } from "./MessageMarkdown";
+import { memo } from "react";
+import { ToolResult } from "./ToolResult";
 
 type Props = {
-  message: Message;
+  message: Message | ChatMessageAI;
 };
 
+function isChatMessageAI(msg: Message | ChatMessageAI): msg is ChatMessageAI {
+  return "parts" in msg;
+}
+
+function getMessageTimestamp(msg: Message | ChatMessageAI): Date | null {
+  // ChatMessageAI case
+  if ("metadata" in msg && msg.metadata?.createdAt) {
+    const date = new Date(msg.metadata.createdAt);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  // Message case
+  if ("timestamp" in msg && msg.timestamp) {
+    return msg.timestamp;
+  }
+
+  return null;
+}
+
+const RenderMessageContentComponent = ({
+  msg,
+}: {
+  msg: Message | ChatMessageAI;
+}) => {
+  if (isChatMessageAI(msg)) {
+    return (
+      <>
+        {msg.parts.map((part, i) => {
+          if (part.type === "text") {
+            return (
+              <div key={i} className="m-0 p-0 w-full">
+                <MarkdownResponse>{part.text}</MarkdownResponse>
+              </div>
+            );
+          }
+
+          if (part.type.startsWith("tool-")) {
+            return (
+              <div className="my-2" key={`tool-part-${i}`}>
+                <ToolResult part={part as any} />
+              </div>
+            );
+          }
+
+          return null;
+        })}
+      </>
+    );
+  }
+
+  // fallback: simple Message
+  return <MarkdownResponse>{msg.content}</MarkdownResponse>;
+};
+
+const RenderMessageContent = memo(RenderMessageContentComponent);
+
 export default function MessageItem({ message: msg }: Props) {
+  const timestamp = getMessageTimestamp(msg);
   return (
     <div
       className={cn(
         "flex gap-4 animate-in fade-in-50 slide-in-from-bottom-3 duration-500",
         msg.role === "user" && "flex-row-reverse",
-        msg.role === "system" && "justify-center"
+        msg.role === "system" && "justify-center",
       )}
     >
       {/* Avatar */}
@@ -26,7 +84,7 @@ export default function MessageItem({ message: msg }: Props) {
             "flex h-10 w-10 lg:h-12 lg:w-12 shrink-0 items-center justify-center rounded-full shadow-md",
             msg.role === "user"
               ? "bg-primary text-primary-foreground"
-              : "bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700"
+              : "bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700",
           )}
         >
           {msg.role === "user" ? (
@@ -46,7 +104,7 @@ export default function MessageItem({ message: msg }: Props) {
           msg.role === "assistant" &&
             "bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-200 rounded-bl-sm border border-gray-100 dark:border-zinc-700",
           msg.role === "system" &&
-            "bg-blue-50/80 text-blue-900 dark:bg-blue-900/20 dark:text-blue-200 max-w-md mx-auto border border-blue-100 dark:border-blue-900"
+            "bg-blue-50/80 text-blue-900 dark:bg-blue-900/20 dark:text-blue-200 max-w-md mx-auto border border-blue-100 dark:border-blue-900",
         )}
       >
         {/* System Header */}
@@ -61,112 +119,25 @@ export default function MessageItem({ message: msg }: Props) {
 
         {/* Markdown Content */}
         <div className="prose prose-sm max-w-none text-[15px] leading-relaxed dark:prose-invert [&>p]:mb-0 [&>p:not(:last-child)]:mb-4">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              h1: ({ node, ...props }) => (
-                <h1
-                  className="text-2xl font-extrabold text-gray-900 dark:text-gray-100 mt-10 mb-6 pb-2 border-b-2 border-gray-100 dark:border-zinc-800"
-                  {...props}
-                />
-              ),
-              h2: ({ node, ...props }) => (
-                <h2
-                  className="text-xl font-bold text-gray-800 dark:text-gray-200 mt-10 mb-4 tracking-tight"
-                  {...props}
-                />
-              ),
-              h3: ({ node, ...props }) => (
-                <h3
-                  className="text-lg font-semibold text-gray-800 dark:text-gray-300 mt-8 mb-3"
-                  {...props}
-                />
-              ),
-              p: ({ node, ...props }) => (
-                <p
-                  className="text-[15px] text-gray-600 dark:text-gray-400 leading-relaxed mb-5"
-                  {...props}
-                />
-              ),
-              ul: ({ node, ...props }) => (
-                <ul
-                  className="list-disc pl-6 mb-6 space-y-2 text-[15px] text-gray-600 dark:text-gray-400 marker:text-emerald-500"
-                  {...props}
-                />
-              ),
-              ol: ({ node, ...props }) => (
-                <ol
-                  className="list-decimal pl-6 mb-6 space-y-2 text-[15px] text-gray-600 dark:text-gray-400 marker:text-emerald-500 font-medium"
-                  {...props}
-                />
-              ),
-              li: ({ node, ...props }) => (
-                <li className="pl-1 leading-relaxed" {...props} />
-              ),
-              strong: ({ node, ...props }) => (
-                <strong
-                  className="font-semibold text-gray-900 dark:text-gray-200"
-                  {...props}
-                />
-              ),
-              blockquote: ({ node, ...props }) => (
-                <blockquote
-                  className="border-l-4 border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-500/10 pl-5 py-3 my-6 rounded-r-lg italic text-gray-700 dark:text-gray-300"
-                  {...props}
-                />
-              ),
-              a: ({ node, ...props }) => (
-                <a
-                  className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
-                  {...props}
-                />
-              ),
-              table: ({ node, ...props }) => (
-                <div className="overflow-x-auto my-6 border border-gray-200 dark:border-zinc-700 rounded-lg">
-                  <table
-                    className="w-full text-left text-sm text-gray-600 dark:text-gray-400"
-                    {...props}
-                  />
-                </div>
-              ),
-              thead: ({ node, ...props }) => (
-                <thead
-                  className="bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-gray-200 font-semibold"
-                  {...props}
-                />
-              ),
-              th: ({ node, ...props }) => (
-                <th
-                  className="px-4 py-3 border-b border-gray-200 dark:border-zinc-700"
-                  {...props}
-                />
-              ),
-              td: ({ node, ...props }) => (
-                <td
-                  className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800/50"
-                  {...props}
-                />
-              ),
-            }}
-          >
-            {msg.content}
-          </ReactMarkdown>
+          <RenderMessageContent msg={msg} />
         </div>
 
         {/* Timestamp */}
-        <span
-          className={cn(
-            "mt-2.5 block text-xs font-medium",
-            msg.role === "user"
-              ? "text-primary-foreground/70"
-              : "text-gray-400 dark:text-gray-500"
-          )}
-        >
-          {msg.timestamp.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
+        {timestamp && (
+          <span
+            className={cn(
+              "mt-2.5 block text-xs font-medium",
+              msg.role === "user"
+                ? "text-primary-foreground/70"
+                : "text-gray-400 dark:text-gray-500",
+            )}
+          >
+            {timestamp.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        )}
       </div>
     </div>
   );

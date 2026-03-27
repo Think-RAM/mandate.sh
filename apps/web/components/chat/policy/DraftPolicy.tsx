@@ -1,11 +1,10 @@
 import { CompanyProfile } from "@/utils/types";
 import { PolicySectionCard } from "./PolicySectionCard";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { FileText } from "lucide-react";
 import { parseBackendDrafts } from "@/utils/parseBackendDrafts";
 import { POLICY_SECTIONS } from "@/utils/constants";
 import { getSectionState } from "@/utils/getSectionState";
+import { MarkdownResponse } from "../messages/MessageMarkdown";
 
 export function DraftPolicy({
   companyProfile,
@@ -31,7 +30,7 @@ export function DraftPolicy({
           className="max-w-4xl mx-auto bg-white dark:bg-zinc-900 rounded-xl p-8 lg:p-12 border border-gray-200 dark:border-zinc-800 shadow-lg relative print:max-w-none print:border-none print:shadow-none print:p-0 print:m-0"
         >
           {/* Decorative Top Accent */}
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-t-xl print:hidden" />
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-emerald-500 to-blue-500 rounded-t-xl print:hidden" />
 
           <div className="flex items-center gap-3 mb-8 border-b border-gray-100 dark:border-zinc-800 pb-6">
             <div className="h-12 w-12 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
@@ -48,97 +47,9 @@ export function DraftPolicy({
           </div>
 
           <div className="font-sans">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                h1: ({ node, ...props }) => (
-                  <h1
-                    className="text-2xl font-extrabold text-gray-900 dark:text-gray-100 mt-10 mb-6 pb-2 border-b-2 border-gray-100 dark:border-zinc-800"
-                    {...props}
-                  />
-                ),
-                h2: ({ node, ...props }) => (
-                  <h2
-                    className="text-xl font-bold text-gray-800 dark:text-gray-200 mt-10 mb-4 tracking-tight"
-                    {...props}
-                  />
-                ),
-                h3: ({ node, ...props }) => (
-                  <h3
-                    className="text-lg font-semibold text-gray-800 dark:text-gray-300 mt-8 mb-3"
-                    {...props}
-                  />
-                ),
-                p: ({ node, ...props }) => (
-                  <p
-                    className="text-[15px] text-gray-600 dark:text-gray-400 leading-relaxed mb-5"
-                    {...props}
-                  />
-                ),
-                ul: ({ node, ...props }) => (
-                  <ul
-                    className="list-disc pl-6 mb-6 space-y-2 text-[15px] text-gray-600 dark:text-gray-400 marker:text-emerald-500"
-                    {...props}
-                  />
-                ),
-                ol: ({ node, ...props }) => (
-                  <ol
-                    className="list-decimal pl-6 mb-6 space-y-2 text-[15px] text-gray-600 dark:text-gray-400 marker:text-emerald-500 font-medium"
-                    {...props}
-                  />
-                ),
-                li: ({ node, ...props }) => (
-                  <li className="pl-1 leading-relaxed" {...props} />
-                ),
-                strong: ({ node, ...props }) => (
-                  <strong
-                    className="font-semibold text-gray-900 dark:text-gray-200"
-                    {...props}
-                  />
-                ),
-                blockquote: ({ node, ...props }) => (
-                  <blockquote
-                    className="border-l-4 border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-500/10 pl-5 py-3 my-6 rounded-r-lg italic text-gray-700 dark:text-gray-300"
-                    {...props}
-                  />
-                ),
-                a: ({ node, ...props }) => (
-                  <a
-                    className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
-                    {...props}
-                  />
-                ),
-                table: ({ node, ...props }) => (
-                  <div className="overflow-x-auto my-6 border border-gray-200 dark:border-zinc-700 rounded-lg">
-                    <table
-                      className="w-full text-left text-sm text-gray-600 dark:text-gray-400"
-                      {...props}
-                    />
-                  </div>
-                ),
-                thead: ({ node, ...props }) => (
-                  <thead
-                    className="bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-gray-200 font-semibold"
-                    {...props}
-                  />
-                ),
-                th: ({ node, ...props }) => (
-                  <th
-                    className="px-4 py-3 border-b border-gray-200 dark:border-zinc-700"
-                    {...props}
-                  />
-                ),
-                td: ({ node, ...props }) => (
-                  <td
-                    className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800/50"
-                    {...props}
-                  />
-                ),
-              }}
-            >
-              {/* {formattedPolicy} */}
+            <MarkdownResponse>
               {finalPolicy}
-            </ReactMarkdown>
+            </MarkdownResponse>
           </div>
         </div>
       </div>

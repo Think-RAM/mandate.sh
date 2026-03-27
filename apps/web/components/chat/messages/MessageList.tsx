@@ -3,11 +3,11 @@
 import { useRef, useEffect } from "react";
 import { Skeleton } from "@repo/ui/skeleton";
 import { Bot } from "lucide-react";
-import { Message } from "@/utils/types";
+import { ChatMessageAI, Message } from "@/utils/types";
 import MessageItem from "./MessageItem";
 
 type Props = {
-  messages: Message[];
+  messages: (Message | ChatMessageAI)[];
   isStreaming: boolean;
   error?: string;
 };
