@@ -23,6 +23,7 @@
     "@repo/ui": "^0.0.0",
     "ai": "^6.0.78",
     "apache-arrow": "^21.1.0",
+    "better-sqlite3": "^11.10.0",
     "next": "16.1.0",
     "pdf-parse": "^2.4.5",
     "pdf-parse-new": "^2.0.0",

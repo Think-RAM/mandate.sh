@@ -2,7 +2,7 @@ import { ChatInterface } from "@/components/chat/ChatInterface";
 import { getMandateWorkflowStatus } from "@/actions/workflow";
 import { mandateGetThreadCurrentState } from "@repo/agents";
 import { extractCompanyProfile } from "@/utils/extract-company-profile";
-import { getPoliciesByCompany, Policy } from "@repo/database";
+import { getPoliciesByCompany } from "@repo/database";
 
 type Props = {
   threadId: string;

@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { Select } from "@repo/ui/select";
+import {
+  SelectPrime as Select,
+} from "@repo/ui/select";
 import { SelectionCard } from "@repo/ui/selection-card";
 import { ProgressBar } from "@repo/ui/progress";
 import { submitCompanyProfile } from "@/actions/onboarding";
@@ -428,7 +430,7 @@ export default function OnboardingWizard() {
               variant="primary"
               onClick={handleNext}
               disabled={isPending}
-              className="min-w-[140px]"
+              className="min-w-35"
             >
               {isPending
                 ? "Saving..."

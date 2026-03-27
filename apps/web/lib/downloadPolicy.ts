@@ -1,3 +1,4 @@
+"use server";
 import puppeteer from "puppeteer";
 import { marked } from "marked";
 import { Policy } from "@repo/database";
