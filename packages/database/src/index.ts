@@ -15,3 +15,14 @@ const adapter = new PrismaPg(pool)
 // 3. Pass the adapter to the PrismaClient
 export const db = new PrismaClient({ adapter })
 export * from '@prisma/client'
+
+export {
+    createPolicy,
+    getPoliciesByCompany,
+    updatePolicy,
+    updatePolicyContent,
+} from "./policy";
+export {
+    saveAdditionalData,
+    getCompanyInfo,
+} from "./company";
