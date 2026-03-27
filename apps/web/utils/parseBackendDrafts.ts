@@ -12,12 +12,27 @@ export const parseBackendDrafts = (drafts: Record<string, string>) => {
     if (match?.[1]) parsed[key] = match[1].trim();
   };
 
-  extract("purpose", /##\s*(?:\d+\.\s*)?Purpose.*?Scope([\s\S]*?)(?=##|$)/i);
-  extract("inventory", /##\s*(?:\d+\.\s*)?(?:AI\s*System\s*)?Inventory([\s\S]*?)(?=##|$)/i);
-  extract("governance", /##\s*(?:\d+\.\s*)?Governance.*?Structure([\s\S]*?)(?=##|$)/i);
-  extract("roles", /##\s*(?:\d+\.\s*)?Roles.*?Responsibilities([\s\S]*?)(?=##|$)/i);
-  extract("regulations", /##\s*(?:\d+\.\s*)?Applicable.*?Regulations([\s\S]*?)(?=##|$)/i);
-  extract("risk", /##\s*(?:\d+\.\s*)?Risk.*?Appetite([\s\S]*?)(?=##|$)/i);
+  extract(
+    "purpose",
+    /^#{1,2}\s*(?:\d+\.\s*)?Purpose\s*&\s*Scope([\s\S]*?)(?=^#{1,2}\s|$)/im,
+  );
+  extract(
+    "inventory",
+    /^#{1,2}\s*(?:\d+\.\s*)?(?:AI\s*System\s*)?Inventory([\s\S]*?)(?=^#{1,2}\s|$)/im,
+  );
+  extract(
+    "governance",
+    /^#{1,2}\s*(?:\d+\.\s*)?Governance.*?Structure([\s\S]*?)(?=^#{1,2}\s|$)/im,
+  );
+  extract(
+    "roles",
+    /^#{1,2}\s*(?:\d+\.\s*)?Roles.*?Responsibilities([\s\S]*?)(?=^#{1,2}\s|$)/im,
+  );
+  extract(
+    "regulations",
+    /^#{1,2}\s*(?:\d+\.\s*)?Applicable.*?Regulations([\s\S]*?)(?=^#{1,2}\s|$)/im,
+  );
+  extract("risk", /^#{1,2}\s*(?:\d+\.\s*)?Risk.*?Appetite([\s\S]*?)(?=^#{1,2}\s|$)/im);
 
   return parsed;
 };

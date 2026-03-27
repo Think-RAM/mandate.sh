@@ -76,9 +76,10 @@ export async function POST(req: NextRequest) {
               label: NODE_LABELS[name] ?? name,
             };
             // Inject draft policies into the SSE payload so the UI can grab them!
-            if (output?.draft_policy_2)
+            if (output?.draft_policy_2){
               console.log("Draft Policy 2 found in output:", output.draft_policy_2);
               payload.draft_policy_2 = output.draft_policy_2;
+            }
             if (output?.draft_policy_3)
               payload.draft_policy_3 = output.draft_policy_3;
             if (output?.draft_policy_4)
