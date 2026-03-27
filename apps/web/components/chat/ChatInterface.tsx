@@ -13,11 +13,13 @@ import RightPanel from "./layout/RightPanel";
 import {
   PolicyAgentProvider,
   PolicyUpdateProps,
+  usePolicyAgent,
 } from "@/context/chat/PolicyAgentContext";
-import { Policy } from "@repo/database";
+import type { Policy } from "@repo/database";
 import { generatePolicyPDF } from "@/lib/downloadPolicy";
 import { ExecutiveSummaryModal } from "./modals/ExecutiveSummaryModel";
 import { generateExecutiveSummary, type SummaryOutput } from "@/actions/summary-actions";
+import { getPoliciesByThread } from "@/actions/actions";
 
 type ChatInterfaceProps = {
   threadId: string;
@@ -30,11 +32,6 @@ type ChatInterfaceProps = {
   initialDrafts?: Record<string, string>;
   initialStagesComplete?: string[];
   initialActiveStage?: string | null;
-
-  PolicyDocuments: {
-    current: Policy | null;
-    versions: Policy[];
-  };
 };
 
 // ─── ChatInterface ────────────────────────────────────────────────────────────
@@ -49,7 +46,6 @@ export function ChatInterface({
   initialDrafts = {},
   initialStagesComplete = [],
   initialActiveStage = null,
-  PolicyDocuments,
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -64,8 +60,6 @@ export function ChatInterface({
   const [summaryData, setSummaryData] = useState<SummaryOutput | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false); 
   const [summaryError, setSummaryError] = useState<string | null>(null);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   // Live event state
@@ -87,10 +81,10 @@ export function ChatInterface({
   const [PolicyDocumentsState, setPolicyDocumentsState] = useState<{
     current: Policy | null;
     versions: Policy[];
-  }>(PolicyDocuments);
+  }>({ current: null, versions: [] });
   const [selectedPolicyVersion, setSelectedPolicyVersion] = useState<
     number | null
-  >(PolicyDocuments.current ? PolicyDocuments.current.version : null);
+  >(null);
 
   // 5. Update the initialQuestion effect to avoid duplicate messages on refresh
   useEffect(() => {
@@ -117,8 +111,22 @@ export function ChatInterface({
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    const setPolicyFromBackend = async () => {
+      try {
+        const policyState = await getPoliciesByThread(threadId);
+        setPolicyDocumentsState({
+          current: policyState.current,
+          versions: policyState.versions,
+        })
+        setSelectedPolicyVersion(policyState.current?.version ?? null);
+      } catch (error) {
+        console.error("Failed to fetch or set policies:", error);
+      }
+    }
+    if(initialPolicies){
+      setPolicyFromBackend();
+    }
+  }, [initialPolicies]);
 
   function connectToStream(
     action: "start" | "resume",

@@ -68,7 +68,7 @@ export default function RightPanel(props: {
               </p>
             </div>
 
-            <StatusBadge status={status} />
+            <StatusBadge status={isUpdatingPolicy? policyStatus : status} />
           </div>
         </div>
       </div>
@@ -86,16 +86,6 @@ export default function RightPanel(props: {
         }
       />
 
-      {/* INPUT */}
-      {(status === "interrupt" || isUpdatingPolicy) && (
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          onSubmit={isUpdatingPolicy ? handleSendPolicyMessage : onSubmit}
-          isSubmitting={isSubmitting || policyStatus === "streaming"}
-        />
-      )}
-
       {(status === "completed" || policies) && (
         <div className="border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-6 z-10 shrink-0">
           <div className="max-w-2xl mx-auto bg-green-50 dark:bg-green-950/30 border-l-4 border-green-500 rounded-r-lg p-5 shadow-sm">
@@ -103,13 +93,13 @@ export default function RightPanel(props: {
               <div className="flex items-center gap-4">
                 <CheckCircle2 className="h-6 w-6 text-green-500 shrink-0" />
                 <p className="text-sm font-medium text-green-900 dark:text-green-200">
-                  {isUpdatingPolicy
+                  {!isUpdatingPolicy
                     ? "Policy generation complete. Review the document on the left."
                     : "Policy generation complete. Review the document on the left."}
                 </p>
               </div>
 
-              {isUpdatingPolicy && (
+              {!isUpdatingPolicy && (
                 <div className="flex items-center justify-between gap-4">
                   <p className="text-sm text-green-800 dark:text-green-300">
                     Want to refine or expand it further? Continue editing with
@@ -119,7 +109,7 @@ export default function RightPanel(props: {
                   <Button
                     onClick={() => setIsUpdatingPolicy(true)}
                     variant="outline"
-                    className="border-green-500 text-green-700 hover:bg-green-100 dark:text-green-300 dark:border-green-700 dark:hover:bg-green-900/40"
+                    className="text-white border-green-700 hover:bg-green-900/40 bg-transparent"
                   >
                     Continue Editing
                   </Button>
@@ -128,6 +118,16 @@ export default function RightPanel(props: {
             </div>
           </div>
         </div>
+      )}
+
+      {/* INPUT */}
+      {((status === "interrupt" && !policies) || isUpdatingPolicy) && (
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          onSubmit={isUpdatingPolicy ? handleSendPolicyMessage : onSubmit}
+          isSubmitting={isSubmitting || policyStatus === "streaming"}
+        />
       )}
     </div>
   );

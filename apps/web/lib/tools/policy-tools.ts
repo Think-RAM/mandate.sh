@@ -1,5 +1,5 @@
 import { ChatMessageAI } from "@/utils/types";
-import { generateText, Output, tool,  UIMessageStreamWriter } from "ai";
+import { generateText, Output, tool, UIMessageStreamWriter } from "ai";
 import z from "zod";
 import { aiGovernancePolicySpec } from "@repo/agents";
 import { google } from "@ai-sdk/google";
@@ -194,18 +194,18 @@ export const rewriteForSectionTool = (
                     sectionId,
                 );
 
-                const rewrittenInfo = await generateText({
-                    model: google("gemini-2.5-flash"),
+                const { output } = await generateText({
+                    model: google('gemini-2.0-flash-lite'),
                     prompt,
                     output: Output.object({
                         schema: z.object({
                             text: z.string().describe("The rewritten content relevant to the policy section."),
-                            changeNotes: z.string().describe("Notes on what was changed and why, for audit purposes."),
+                            changeNotes: z.string().describe("Notes on what was changed and why, for audit purposes max 1 sentence."),
                         })
                     })
                 });
 
-                const updatedPolicy = await updatePolicyContent(threadId, rewrittenInfo.output.text, sectionId, rewrittenInfo.output.changeNotes, version);
+                const updatedPolicy = await updatePolicyContent(threadId, output.text, sectionId, `[AGENT]: ${output.changeNotes}`, version);
 
                 dataStream.write({
                     id: `rewrite-${sectionId}-${Date.now()}`,
@@ -213,13 +213,13 @@ export const rewriteForSectionTool = (
                     data: {
                         updatedPolicy,
                         sectionId: sectionId,
-                        rewrittenInfo: rewrittenInfo.output.text,
-                        changeNotes: rewrittenInfo.output.changeNotes,
+                        rewrittenInfo: output.text,
+                        changeNotes: output.changeNotes,
                         version: updatedPolicy.version,
                     } satisfies PolicyUpdateProps,
                 });
 
-                return rewrittenInfo.output;
+                return output.text;
             } catch (error) {
                 console.error("Error in rewriteForSectionTool:", error);
                 throw new Error("Failed to rewrite content for the policy section.");

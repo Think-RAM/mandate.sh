@@ -101,11 +101,12 @@ export async function POST(req: Request) {
       originalMessages: messages,
       execute: async ({ writer: dataStream }) => {
         const result = streamText({
-          model: google("gemini-2.5-flash"),
+          model: google('gemini-2.0-flash-lite'),
           system: `${SYSTEM_PROMPT}
+          ---
           Current Policy Content:
           ${currentPolicyContent}
-
+          ---
           Company Information:
           ${jsonToMarkdownTable(companyInfo)}
           `,

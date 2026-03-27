@@ -62,7 +62,7 @@ export default function LeftPanel(props: {
   } = props;
 
   const leftPanelTitle = policies.current
-    ? `AI Governance Policies - Policy Status: ${policies.current.status}`
+    ? `AI Governance Policies`
     : "Policy Draft";
 
   const leftPanelSubtitle = policies
@@ -157,7 +157,7 @@ export default function LeftPanel(props: {
       </div>
 
       {/* STAGE BAR */}
-      {!policies && (
+      {!policies.current && (
         <StageProgressBar
           activeStage={activeStage}
           stagesComplete={stagesComplete}
@@ -175,7 +175,7 @@ export default function LeftPanel(props: {
       />
 
       {/* AGENT STRIP */}
-      {!policies && (
+      {!policies.current && (
         <AgentActivityStrip
           liveEvents={liveEvents}
           currentNode={currentNode}

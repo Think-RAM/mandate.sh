@@ -35,25 +35,21 @@ export default function VersionDropdown({
           onSelectVersion(value === "current" ? null : Number(value))
         }
       >
-        <SelectTrigger className="h-8 text-xs px-2.5 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
+        <SelectTrigger className="h-16 text-xs px-2.5 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
           <SelectValue placeholder="Select version" />
         </SelectTrigger>
 
         <SelectContent className="max-w-[320px]">
-          <SelectItem value="current" className="text-xs">
-            Current Version
-          </SelectItem>
-
           {versions.map((version) => (
             <SelectItem
               key={version.id}
               value={String(version.version)}
-              className="text-xs py-2"
+              className="text-xs py-2 bg-white dark:bg-zinc-900 border-b last:border-0 border-gray-200 dark:border-zinc-700"
             >
               <div className="flex flex-col gap-1 leading-tight">
                 {/* Primary */}
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                  <span className="font-medium text-black dark:text-gray-100">
                     Version {version.version}
                   </span>
                 </div>

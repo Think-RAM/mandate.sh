@@ -2,7 +2,6 @@ import { ChatInterface } from "@/components/chat/ChatInterface";
 import { getMandateWorkflowStatus } from "@/actions/workflow";
 import { mandateGetThreadCurrentState } from "@repo/agents";
 import { extractCompanyProfile } from "@/utils/extract-company-profile";
-import { getPoliciesByCompany } from "@repo/database";
 
 type Props = {
   threadId: string;
@@ -17,7 +16,6 @@ export default async function DashboardContent({
 }: Props) {
   let companyProfile;
   let finalPolicies: string | undefined;
-  const PolicyDocuments = await getPoliciesByCompany(threadId);
 
   // Fetch graph state (non-blocking failure)
   try {
@@ -41,7 +39,6 @@ export default async function DashboardContent({
         initialQuestion={urlQuestion}
         companyProfile={companyProfile}
         initialPolicies={finalPolicies}
-        PolicyDocuments={PolicyDocuments}
       />
     );
   }
@@ -69,7 +66,6 @@ export default async function DashboardContent({
       initialQuestion={statusResult.question}
       initialPolicies={statusResult.policies}
       companyProfile={companyProfile}
-      PolicyDocuments={PolicyDocuments}
     />
   );
 }
