@@ -85,10 +85,32 @@ type PolicySection = {
     content: string;
 };
 
+function parseSections(policyText?: string | null): { title: string; content: string }[] {
+  if (!policyText || typeof policyText !== "string") return [];
+
+  const sectionRegex = /^##\s+(.+?)\n([\s\S]*?)(?=^##\s+|\Z)/gm;
+
+  const sections: { title: string; content: string }[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = sectionRegex.exec(policyText)) !== null) {
+    const rawTitle = match[1]?.trim();
+    const content = match[2]?.trim() ?? "";
+
+    if (!rawTitle) continue;
+
+    // Optional: clean numbering like "1. Introduction" → "Introduction"
+    const title = rawTitle.replace(/^\d+[\.\)]\s*/, "").trim();
+
+    sections.push({ title, content });
+  }
+
+  return sections;
+}
+
 export async function updatePolicyContent(
     threadId: string,
-    updatedSectionContent: string,
-    sectionId: string,
+    updatedContent: string,
     changeNote: string,
     version: number | null,
 ) {
@@ -112,48 +134,15 @@ export async function updatePolicyContent(
         throw new Error("No existing policy found for this thread");
     }
 
-    // 2. Parse sections safely
-    const sections = (latestPolicy.sections || []) as PolicySection[];
-
-    if (!Array.isArray(sections)) {
-        throw new Error("Invalid sections format in policy");
-    }
-
-    // 3. Update the specific section
-    let sectionFound = false;
-
-    const updatedSections = sections.map((section) => {
-        if (section.title === sectionId) {
-            sectionFound = true;
-            return {
-                ...section,
-                content: updatedSectionContent,
-            };
-        }
-        return section;
-    });
-
-    // Optional: if section doesn't exist, add it
-    if (!sectionFound) {
-        updatedSections.push({
-            title: sectionId,
-            content: updatedSectionContent,
-        });
-    }
-
-    // 4. Rebuild full markdown content
-    const rebuiltContent = await updateMarkdownSectionAST(
-        latestPolicy.content,
-        sectionId,
-        updatedSectionContent
-    );
+    const updatedSections = parseSections(updatedContent);
+    
 
     // 5. Create new version
     const updatedPolicy = await db.policy.create({
         data: {
             companyId: latestPolicy.companyId,
             threadId: latestPolicy.threadId,
-            content: rebuiltContent,
+            content: updatedContent,
             sections: updatedSections,
             version: currentVersion + 1,
             changeNote,

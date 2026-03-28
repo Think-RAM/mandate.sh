@@ -5,7 +5,7 @@ import { aiGovernancePolicySpec } from "@repo/agents";
 import { openai } from '@ai-sdk/openai';
 import { updatePolicyContent } from "@repo/database";
 import { PolicyUpdateProps } from "@/context/chat/PolicyAgentContext";
-import { text } from "stream/consumers";
+import { findSectionContextPrompt, generateRewritePrompt, rewritePolicySectionPrompt } from "../prompts/policy";
 
 const sectionIds = z
     .enum([
@@ -21,6 +21,11 @@ const sectionIds = z
     .describe(
         "The ID of the policy section that is being drafted, which will guide how the information should be rewritten.",
     );
+
+const method = z.enum(["DET", "LLM", "HYB", "STO + DET"]).describe(
+    "The method by which the section content should be generated or updated, which can influence the style and approach to rewriting the information.",
+);
+
 export const findSectionContextTool = tool({
     description: `
         Retrieve the official specification and drafting guidance for a given policy section.
@@ -37,13 +42,40 @@ export const findSectionContextTool = tool({
         Do NOT use this tool if you already clearly understand the section requirements.
         `,
     inputSchema: z.object({
-        sectionId: sectionIds,
+        sectionId: sectionIds.optional(),
+        sectionHeading: z.string().optional().describe("The heading or title of the policy section, which can be used to infer the section ID if the ID is not provided."),
+        sectionContent: z.string().optional().describe("The current content of the section, which can provide additional context for determining the section requirements."),
+        updateRequirement: z.string().optional().describe("Any specific requirements or focus areas for the section that should be emphasized in the guidance."),
     }),
-    execute: async ({ sectionId }) => {
+    execute: async ({ sectionId, sectionHeading, sectionContent, updateRequirement }) => {
         try {
-            const sectionSpec = aiGovernancePolicySpec.sections[sectionId];
+            if (sectionId) {
+                const sectionSpec = aiGovernancePolicySpec.sections[sectionId];
+                return sectionSpec;
+            }
+            else {
+                if (!sectionHeading || !sectionContent || !updateRequirement) {
+                    throw new Error("Insufficient information to determine section context. Please provide either a sectionId or a combination of sectionHeading, sectionContent, and updateRequirement.");
+                }
+                const { output } = await generateText({
+                    model: openai("gpt-5"),
+                    prompt: findSectionContextPrompt({
+                        sectionHeading,
+                        sectionContent,
+                        updateRequirement,
+                    }),
+                    output: Output.object({
+                        schema: z.object({
+                            input: z.array(z.string()).describe("Input values required to determine the section content."),
+                            method: method,
+                            generation_details: z.string().describe("Detailed explanation of how the section content should be generated or updated based on the inferred section and provided information."),
+                        })
+                    })
+                })
 
-            return sectionSpec;
+                return output;
+            }
+
         } catch (error) {
             console.error("Error in findSectionContextTool:", error);
             throw new Error("Failed to find relevant context for the policy section.");
@@ -51,82 +83,13 @@ export const findSectionContextTool = tool({
     },
 });
 
-const generateRewritePrompt = (
-    originalSection: string,
-    companyInfo: string,
-    updateRequirement: string,
-    generationSpecifics: string,
-    sectionId: string,
-): string => {
-    return `
-You are an expert policy writer and compliance specialist.
 
-Your task is to update a policy section based on new requirements.
-
----
-
-## 📌 Section
-${sectionId}
-
----
-
-## 🏢 Company Context
-${companyInfo || "Not provided"}
-
----
-
-## 🔧 Update Requirement
-${updateRequirement}
-
----
-
-## ✍️ Style Guidelines
-${generationSpecifics || "Formal, precise, and policy-compliant language"}
-
----
-
-## 📄 Existing Content
-"""
-${originalSection || "No existing content"}
-"""
-
----
-
-## 🎯 Instructions
-
-1. Rewrite or refine the section to incorporate the update requirement
-2. Ensure alignment with formal policy standards
-3. Avoid redundancy and vague language
-4. Maintain clarity and structure
-
----
-
-## 📦 Output Format (STRICT JSON)
-
-Return ONLY a JSON object:
-
-{
-  "text": "<final rewritten markdown section starting with ### ${sectionId}>",
-  "changeNotes": "<clear explanation of what changed and why>"
-}
-
----
-
-## 🚫 Do NOT:
-- Include explanations outside JSON
-- Include extra keys
-- Include markdown outside the "text" field
-
----
-
-Generate the output now.
-`;
-};
 
 export const rewriteForSectionTool = (
     dataStream: UIMessageStreamWriter<ChatMessageAI>,
     threadId: string,
     version: number | null,
+    originalContent: string,
 ) =>
     tool({
         description: `
@@ -177,7 +140,7 @@ export const rewriteForSectionTool = (
                 .describe(
                     "Any specifics about the generation style or tone that should be used in the rewritten information.",
                 ),
-            sectionId: sectionIds,
+            sectionId: z.string().describe("Section Heading of the section to be updated"),
         }),
         execute: async ({
             originalSection,
@@ -206,7 +169,16 @@ export const rewriteForSectionTool = (
                     })
                 });
 
-                const updatedPolicy = await updatePolicyContent(threadId, output.text, sectionId, `[AGENT]: ${output.changeNotes}`, version);
+                const { text: rewrittenContent } = await generateText({
+                    model: openai("gpt-5"),
+                    temperature: 0.2, // Lower temperature for more focused rewriting
+                    prompt: rewritePolicySectionPrompt({
+                        originalContent: originalContent,
+                        rewrittenContent: output.text,
+                    })
+                });
+
+                const updatedPolicy = await updatePolicyContent(threadId, rewrittenContent, `[AGENT]: ${output.changeNotes}`, version);
 
                 dataStream.write({
                     id: `rewrite-${sectionId}-${Date.now()}`,

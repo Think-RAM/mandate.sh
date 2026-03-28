@@ -23,11 +23,6 @@ export default function VersionDropdown({
 }: VersionDropdownProps) {
   return (
     <div className="flex items-center gap-3">
-      {/* Icon + Label */}
-      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 shrink-0">
-        <History className="h-3.5 w-3.5" />
-        <span className="font-medium">Version</span>
-      </div>
 
       <Select
         value={currentVersion ? String(currentVersion) : "current"}
