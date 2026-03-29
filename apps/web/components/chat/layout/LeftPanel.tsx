@@ -161,7 +161,7 @@ export default function LeftPanel(props: {
                   {isDownloading ? "Saving..." : "PDF"}
                 </button>
 
-                <button
+                {/* <button
                   onClick={onGenerateSummary}
                   disabled={isGeneratingSummary}
                   className="text-xs font-medium flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30 rounded-md px-3 py-1.5 transition-colors disabled:opacity-50"
@@ -172,7 +172,7 @@ export default function LeftPanel(props: {
                     <Sparkles className="h-3.5 w-3.5" />
                   )}
                   {isGeneratingSummary ? "Generating..." : "Summary"}
-                </button>
+                </button> */}
               </div>
             </div>
           )}
