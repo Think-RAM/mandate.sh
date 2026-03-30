@@ -2,6 +2,7 @@
 import puppeteer from "puppeteer";
 import { marked } from "marked";
 import { PolicyVariant } from "@repo/database";
+import { escapeHtml, sanitize } from "@/utils/sanatize";
 type CompanyProfile = {
   name: string;
   industry: string;
@@ -23,8 +24,9 @@ export async function generateVariantPDF(
   });
   const page = await browser.newPage();
   // Convert markdown content → HTML
-  const contentHtml = marked.setOptions({ breaks: true, gfm: true }).parse(variant.content);
-  const variantLabel = VARIANT_LABELS[variant.variantType] || variant.variantType.replace(/_/g, " ");
+  const contentHtml = await marked.setOptions({ breaks: true, gfm: true }).parse(variant.content);
+  const safeContentHtml = sanitize(contentHtml);
+  const variantLabel = escapeHtml(VARIANT_LABELS[variant.variantType] || variant.variantType.replace(/_/g, " "));
   const html = `
   <!DOCTYPE html>
   <html>
@@ -89,7 +91,7 @@ export async function generateVariantPDF(
     </div>
     <!-- Content -->
     <div class="content">
-      ${contentHtml}
+      ${safeContentHtml}
     </div>
     <!-- Footer -->
     <footer>
