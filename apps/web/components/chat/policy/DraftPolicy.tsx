@@ -5,6 +5,7 @@ import { parseBackendDrafts } from "@/utils/parseBackendDrafts";
 import { POLICY_SECTIONS } from "@/utils/constants";
 import { getSectionState } from "@/utils/getSectionState";
 import { MarkdownResponse } from "../messages/MessageMarkdown";
+import VariantPanel from "../policyVariant/VariantPanel";
 
 export function DraftPolicy({
   companyProfile,
@@ -54,6 +55,10 @@ export function DraftPolicy({
             </MarkdownResponse>
           </div>
         </div>
+        {/* NEW: Integrate the Variant Panel */}
+
+  {/* <VariantPanel policy={finalPolicy} /> */}
+
       </div>
     );
   }

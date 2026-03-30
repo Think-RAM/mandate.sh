@@ -37,7 +37,7 @@ export default function VariantViewer({ variant, policyCreatedAt, onRegenerate, 
         </div>
       )}
 
-      <div className="prose max-w-none">
+   <div className="prose prose-sm dark:prose-invert max-w-none">
         <ReactMarkdown>{variant.content}</ReactMarkdown>
       </div>
     </div>
