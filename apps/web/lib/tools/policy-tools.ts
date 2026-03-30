@@ -171,7 +171,6 @@ export const rewriteForSectionTool = (
 
                 const { text: rewrittenContent } = await generateText({
                     model: openai("gpt-5"),
-                    temperature: 0.2, // Lower temperature for more focused rewriting
                     prompt: rewritePolicySectionPrompt({
                         originalContent: originalContent,
                         rewrittenContent: output.text,

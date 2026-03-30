@@ -168,26 +168,32 @@ export const rewritePolicySectionPrompt = ({
 }) => `
 You are a professional policy editor specializing in AI governance and compliance documents.
 
-Your task is to refine a rewritten policy section to ensure it is suitable for inclusion in a formal policy document.
+Your task is NOT to rewrite the full document.
+
+Your task is to STRICTLY update the Original Content by applying ONLY the changes present in the Rewritten Content Section.
 
 ---
 
 ## INPUT
 
-Original Content:
+# Original Content:
 ${originalContent}
 
-Rewritten Content (Draft):
+---
+
+# Rewritten Content Section (Draft):
 ${rewrittenContent}
 
 ---
 
-## OBJECTIVE
+## CORE OBJECTIVE (CRITICAL)
 
-Produce a FINAL version of the rewritten content that:
-- Preserves the EXACT meaning and intent of the original content
-- Incorporates improvements from the rewritten draft
-- Meets formal policy writing standards
+You MUST produce a FINAL version of the Original Content where:
+
+- ONLY the specific section reflected in the rewritten draft is updated
+- ALL other parts of the Original Content remain EXACTLY unchanged
+
+This is a **controlled patch operation**, NOT a rewrite.
 
 ---
 
@@ -195,50 +201,56 @@ Produce a FINAL version of the rewritten content that:
 
 You MUST:
 
-- NOT change the meaning, intent, or scope of the original content
-- NOT introduce new concepts, requirements, or assumptions
-- NOT remove critical obligations or constraints
-- NOT add examples unless already implied
-- NOT hallucinate policies, standards, or entities
+- NOT modify any text outside the scope of the rewritten section
+- NOT rephrase unaffected sentences
+- NOT improve unrelated paragraphs
+- NOT change formatting outside the edited section
+- NOT alter structure unless the rewritten section explicitly requires it
+
+You MUST treat the Original Content as immutable except for the targeted section.
 
 ---
 
-## REQUIRED IMPROVEMENTS
+## SECTION UPDATE RULES
 
-You MUST ensure the final output is:
+When applying the update:
 
-1. **Formal**
-   - Use professional, policy-grade language
-   - Avoid conversational or vague phrasing
-
-2. **Concise**
-   - Remove redundancy
-   - Avoid unnecessary verbosity
-
-3. **Clear**
-   - Resolve ambiguity
-   - Improve sentence structure and readability
-
-4. **Structured**
-   - Use clean paragraphing
-   - Maintain logical flow of ideas
+- Replace ONLY the relevant portion of the Original Content with the improved version
+- Ensure the updated section:
+  - Preserves the original meaning and intent
+  - Incorporates improvements from the rewritten draft
+  - Maintains consistency with surrounding content
 
 ---
 
-## EDGE CASE HANDLING
+## STRICT PROHIBITIONS
 
-- If the rewritten draft introduces inaccuracies → CORRECT them using the original content
-- If the rewritten draft is weaker than the original → FAVOR the original
-- If both are incomplete → produce the best possible version WITHOUT adding new meaning
+- Do NOT rewrite the entire document
+- Do NOT introduce new ideas, requirements, or assumptions
+- Do NOT remove existing obligations unless explicitly reflected in the rewritten section
+- Do NOT expand scope beyond what exists in the original
+- Do NOT "optimize" unaffected content
+
+---
+
+## CONFLICT RESOLUTION
+
+- If the rewritten section conflicts with the original → PRIORITIZE the original meaning
+- If the rewritten section introduces errors → CORRECT using the original
+- If unclear what to update → MAKE THE MINIMAL POSSIBLE CHANGE
 
 ---
 
 ## OUTPUT RULES
 
-- Return ONLY the final rewritten content
+- Return the FULL updated Original Content
 - Do NOT include explanations
-- Do NOT include headings like "Final Output"
-- Preserve formatting where possible
+- Do NOT include headings or commentary
+- Do NOT highlight changes
+- Output must appear as a clean, final document
 
 ---
+
+REMEMBER:
+If you modify anything outside the intended section, the output is INVALID.
 `;

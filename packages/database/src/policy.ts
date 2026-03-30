@@ -51,15 +51,15 @@ export async function getPoliciesByCompany(threadId: string) {
 }
 
 const VALID_TRANSITIONS: Record<PolicyStatus, PolicyStatus[]> = {
-  DRAFT:      ["IN_REVIEW"],
-  IN_REVIEW:  ["APPROVED", "REJECTED"],
-  REJECTED:   ["DRAFT"],
-  APPROVED:   ["PUBLISHED"],
-  PUBLISHED:  [],
+    DRAFT: ["IN_REVIEW"],
+    IN_REVIEW: ["APPROVED", "REJECTED"],
+    REJECTED: ["DRAFT"],
+    APPROVED: ["PUBLISHED"],
+    PUBLISHED: [],
 };
 
 function validateTransition(from: PolicyStatus, to: PolicyStatus): boolean {
-  return VALID_TRANSITIONS[from].includes(to);
+    return VALID_TRANSITIONS[from].includes(to);
 }
 
 
@@ -75,34 +75,42 @@ export async function updatePolicy(
     status: PolicyStatus,
     changeNote: string
 ) {
-    const existingPolicy = await db.policy.findUniqueOrThrow({
-        where: {
-            id: policyId,
-        },
+    return await db.$transaction(async (tx) => {
+        // 1. Fetch existing policy
+        const existingPolicy = await tx.policy.findUniqueOrThrow({
+            where: { id: policyId },
+        });
+
+        // 2. Validate transition
+        if (!validateTransition(existingPolicy.status, status)) {
+            throw new Error(
+                `Invalid status transition from ${existingPolicy.status} to ${status}`
+            );
+        }
+
+        // 3. Get current version count (inside transaction)
+        const currentVersionNumber = await tx.policy.count({
+            where: {
+                threadId: existingPolicy.threadId,
+            },
+        });
+
+        // 4. Create new version
+        const policy = await tx.policy.create({
+            data: {
+                companyId: existingPolicy.companyId,
+                threadId: existingPolicy.threadId,
+                content: existingPolicy.content,
+                sections: existingPolicy.sections as PolicySection[],
+                status,
+                changeNote,
+                version: currentVersionNumber + 1,
+                parentId: existingPolicy.id,
+            },
+        });
+
+        return policy;
     });
-    const currentVersionNumber = await db.policy.count({
-        where: {
-            threadId: existingPolicy.threadId,
-        }
-    })
-    if(!validateTransition(existingPolicy.status, status)) {
-        throw new Error(`Invalid status transition from ${existingPolicy.status} to ${status}`);
-    }
-    const policy = await db.policy.create({
-        data: {
-            companyId: existingPolicy.companyId,
-            threadId: existingPolicy.threadId,
-            content: existingPolicy.content,
-            sections: existingPolicy.sections as PolicySection[],
-            status,
-            changeNote,
-            version: currentVersionNumber + 1,
-            parentId: existingPolicy.id,
-
-        }
-    })
-
-    return policy;
 }
 
 type PolicySection = {
@@ -111,70 +119,70 @@ type PolicySection = {
 };
 
 function parseSections(policyText?: string | null): { title: string; content: string }[] {
-  if (!policyText || typeof policyText !== "string") return [];
+    if (!policyText || typeof policyText !== "string") return [];
 
-  const sectionRegex = /^##\s+(.+?)\n([\s\S]*?)(?=^##\s+|\Z)/gm;
+    const sectionRegex = /^##\s+(.+?)\n([\s\S]*?)(?=^##\s+|\Z)/gm;
 
-  const sections: { title: string; content: string }[] = [];
-  let match: RegExpExecArray | null;
+    const sections: { title: string; content: string }[] = [];
+    let match: RegExpExecArray | null;
 
-  while ((match = sectionRegex.exec(policyText)) !== null) {
-    const rawTitle = match[1]?.trim();
-    const content = match[2]?.trim() ?? "";
+    while ((match = sectionRegex.exec(policyText)) !== null) {
+        const rawTitle = match[1]?.trim();
+        const content = match[2]?.trim() ?? "";
 
-    if (!rawTitle) continue;
+        if (!rawTitle) continue;
 
-    // Optional: clean numbering like "1. Introduction" → "Introduction"
-    const title = rawTitle.replace(/^\d+[\.\)]\s*/, "").trim();
+        // Optional: clean numbering like "1. Introduction" → "Introduction"
+        const title = rawTitle.replace(/^\d+[\.\)]\s*/, "").trim();
 
-    sections.push({ title, content });
-  }
+        sections.push({ title, content });
+    }
 
-  return sections;
+    return sections;
 }
 
 export async function updatePolicyContent(
-    threadId: string,
-    updatedContent: string,
-    changeNote: string,
-    version: number | null,
+  threadId: string,
+  updatedContent: string,
+  changeNote: string,
+  version: number | null
 ) {
-    // 1. Get latest policy
-    const [latestPolicy, currentVersion] = await Promise.all([
-        db.policy.findFirst({
-            where: {
-                threadId,
-                ...(version ? { version } : {})
-            },
-            orderBy: { createdAt: "desc" },
-        }),
-        db.policy.count({
-            where: {
-                threadId,
-            },
-        }),
-    ]);
+  return await db.$transaction(async (tx) => {
+    // 1. Get latest (or specific version) policy
+    const latestPolicy = await tx.policy.findFirst({
+      where: {
+        threadId,
+        ...(version ? { version } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
     if (!latestPolicy) {
-        throw new Error("No existing policy found for this thread");
+      throw new Error("No existing policy found for this thread");
     }
 
-    const updatedSections = parseSections(updatedContent);
-    
+    // 2. Count versions safely inside transaction
+    const currentVersion = await tx.policy.count({
+      where: { threadId },
+    });
 
-    // 5. Create new version
-    const updatedPolicy = await db.policy.create({
-        data: {
-            companyId: latestPolicy.companyId,
-            threadId: latestPolicy.threadId,
-            content: updatedContent,
-            sections: updatedSections,
-            version: currentVersion + 1,
-            changeNote,
-            status: latestPolicy.status,
-            parentId: latestPolicy.id,
-        },
+    // 3. Parse sections
+    const updatedSections = parseSections(updatedContent);
+
+    // 4. Create new version
+    const updatedPolicy = await tx.policy.create({
+      data: {
+        companyId: latestPolicy.companyId,
+        threadId: latestPolicy.threadId,
+        content: updatedContent,
+        sections: updatedSections,
+        version: currentVersion + 1,
+        changeNote,
+        status: latestPolicy.status,
+        parentId: latestPolicy.id,
+      },
     });
 
     return updatedPolicy;
+  });
 }
